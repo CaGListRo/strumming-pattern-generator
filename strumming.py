@@ -1,9 +1,11 @@
 from button import Button
+from slot_indicator import SlotIndicator
 
 import pygame as pg
 
 from random import choice
 from typing import Final
+from time import perf_counter# as pc
 
 class StrummingPatternGenerator:
     FPS: Final[int] = 30
@@ -11,7 +13,7 @@ class StrummingPatternGenerator:
     def __init__(self) -> None:
         """ Initializes the Strumming Pattern Generator app. """
         pg.init()
-        self.screen: pg.display = pg.display.set_mode((475, 250))
+        self.screen: pg.display = pg.display.set_mode((475, 300))
         pg.display.set_caption("Strumming Pattern Generator")
 
         self.running: bool = True
@@ -23,9 +25,14 @@ class StrummingPatternGenerator:
         self.arrow_up: pg.Surface = pg.image.load("arrow.png").convert_alpha()
         self.arrow_up = pg.transform.rotate(self.arrow_up, 180)
         self.background: pg.Surface = pg.image.load("background.png")
-        self.background = pg.transform.scale(self.background, (475, 250))
+        #self.background = pg.transform.scale(self.background, (475, 250))
         self.screen.blit(self.background, (0, 0))
-        
+        self.arrows: list[bool] = []
+
+        self.slot_indicators: list[SlotIndicator] = []
+        for i in range(8):
+            self.slot_indicators.append(SlotIndicator(pos=(14 + i * 60, 50)))
+        self.si_states: list[bool] = [True, False, False, False, False, False, False, False]
 
     def event_handler(self) -> None:
         """ Handles events. """
@@ -37,32 +44,36 @@ class StrummingPatternGenerator:
     def check_button(self) -> None:
         """ Checks if the button is clicked. """
         self.generate = self.button.check_collision()
+        if self.generate:
+            self.generate_arrows()
 
     def generate_arrows(self) -> None:
         """ Generates arrows on the screen. """
-        for i in range(4):
-            draw_arrow: bool = choice((True, False))
-            if draw_arrow:
-                self.screen.blit(self.arrow_down, (i * 120, 50))
-        for i in range(4):
-            draw_arrow: bool = choice((True, False))
-            if draw_arrow:
-                self.screen.blit(self.arrow_up, (60 + i * 120, 50))
+        self.arrows = [choice((True, False)) for _ in range(8)]
         self.generate = False
-        
+
+    def draw_arrows(self, idx: int) -> None:
+        if self.arrows[idx]:
+            if idx % 2 == 0:
+                self.screen.blit(self.arrow_down, (idx * 60, 70))
+            else:
+                self.screen.blit(self.arrow_up, (idx * 60, 70)) 
 
     def draw(self) -> None:
         """ Draws the background, the arrows and lines between the arrows. """
-        if self.generate:
-            self.screen.blit(self.background, (0, 0))
-            self.generate_arrows()
+        self.screen.blit(self.background, (0, 0))
         for i in range(8):
-            pg.draw.line(self.screen, "black", (55 + i * 60, 50), (55 + i * 60, 223), 1)
+            if len(self.arrows) >= 8:
+                self.draw_arrows(i)
+            self.slot_indicators[i].render(self.screen)
+            pg.draw.line(self.screen, "black", (55 + i * 60, 75), (55 + i * 60, 250), 1)
         self.button.render(self.screen)
         pg.display.update()
 
     def run(self) -> None:
         """ Runs the Strumming Pattern Generator app. """
+        old_time = perf_counter()
+        print(old_time)
         while self.running:
             self.clock.tick(self.FPS)
             
