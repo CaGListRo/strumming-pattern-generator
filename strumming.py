@@ -5,7 +5,7 @@ import pygame as pg
 
 from random import choice
 from typing import Final
-from time import perf_counter# as pc
+from time import perf_counter
 
 class StrummingPatternGenerator:
     FPS: Final[int] = 30
@@ -15,6 +15,10 @@ class StrummingPatternGenerator:
         pg.init()
         self.screen: pg.display = pg.display.set_mode((475, 300))
         pg.display.set_caption("Strumming Pattern Generator")
+        icon = pg.image.load("icon.png").convert_alpha()
+        icon_surf = pg.surface.Surface((32, 32))
+        icon_surf.blit(icon, (0, 0))
+        pg.display.set_icon(icon)
 
         self.running: bool = True
         self.clock: pg.time.Clock = pg.time.Clock()
@@ -33,6 +37,9 @@ class StrummingPatternGenerator:
         for i in range(8):
             self.slot_indicators.append(SlotIndicator(pos=(14 + i * 60, 50)))
         self.si_states: list[bool] = [True, False, False, False, False, False, False, False]
+        self.current_slot: int = 0
+        self.bpm: int = 120
+        self.timer: float = 0.0
 
     def event_handler(self) -> None:
         """ Handles events. """
@@ -57,7 +64,26 @@ class StrummingPatternGenerator:
             if idx % 2 == 0:
                 self.screen.blit(self.arrow_down, (idx * 60, 70))
             else:
-                self.screen.blit(self.arrow_up, (idx * 60, 70)) 
+                self.screen.blit(self.arrow_up, (idx * 60, 70))
+
+    def update_slot_indicator(self, dt: float) -> None:
+        """ Updates the slot indicators. """
+        beat_time: float = self.bpm / 60 / 8
+        self.timer += dt
+        if self.timer >= beat_time:
+            self.timer = 0.0
+            self.current_slot += 1
+            if self.current_slot >= 8:
+                self.current_slot = 0
+            self.si_states[self.current_slot] = not self.si_states[self.current_slot]
+            if self.current_slot != 0:
+                self.si_states[self.current_slot - 1] = not self.si_states[self.current_slot - 1]
+            else:
+                self.si_states[7] = not self.si_states[7]
+            print(self.si_states)
+            for idx, si in enumerate(self.slot_indicators):
+                si.update(activated=self.si_states[idx])
+
 
     def draw(self) -> None:
         """ Draws the background, the arrows and lines between the arrows. """
@@ -76,10 +102,13 @@ class StrummingPatternGenerator:
         print(old_time)
         while self.running:
             self.clock.tick(self.FPS)
-            
+            dt = perf_counter() - old_time
+            old_time = perf_counter()
+            self.update_slot_indicator(dt)
             self.draw()
             self.check_button()
             self.event_handler()
+            
             
 
         

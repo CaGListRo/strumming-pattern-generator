@@ -8,6 +8,9 @@ class SlotIndicator:
 
     def update(self, activated: bool=False) -> None:
         self.active = True if activated else False
+
+    def get_state(self) -> bool:
+        return self.active
  
     def render(self, surf: pg.Surface) -> None:
         self.image.fill("orange") if self.active else self.image.fill("black")
