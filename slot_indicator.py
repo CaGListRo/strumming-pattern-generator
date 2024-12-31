@@ -11,6 +11,9 @@ class SlotIndicator:
 
     def get_state(self) -> bool:
         return self.active
+    
+    def set_state(self, state: bool) -> None:
+        self.active = state
  
     def render(self, surf: pg.Surface) -> None:
         self.image.fill("orange") if self.active else self.image.fill("black")

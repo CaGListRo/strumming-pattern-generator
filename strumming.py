@@ -40,16 +40,18 @@ class StrummingPatternGenerator:
         self.arrow_up: pg.Surface = pg.image.load("arrow.png").convert_alpha()
         self.arrow_up = pg.transform.rotate(self.arrow_up, 180)
         self.background: pg.Surface = pg.image.load("background.png")
-        #self.background = pg.transform.scale(self.background, (475, 250))
         self.screen.blit(self.background, (0, 0))
         self.arrows: list[bool] = []
-
+        # slot indicators
+        self.si_states: list[bool] = [True, False, False, False, False, False, False, False]
         self.slot_indicators: list[SlotIndicator] = []
         for i in range(8):
             self.slot_indicators.append(SlotIndicator(pos=(14 + i * 60, 50)))
-        self.si_states: list[bool] = [True, False, False, False, False, False, False, False]
+            self.slot_indicators[i].set_state(self.si_states[i])
         self.current_slot: int = 0
+
         self.bpm: int = 120
+        self.font: pg.font.Font = pg.font.SysFont("comicsans", 23)
         self.timer: float = 0.0
         self.play: bool = False
 
@@ -60,11 +62,23 @@ class StrummingPatternGenerator:
                 self.running = False
                 pg.quit()
 
-    def check_button(self) -> None:
+    def check_buttons(self) -> None:
         """ Checks if the generate_button is clicked. """
         self.generate = self.generate_button.check_collision()
         if self.generate:
             self.generate_arrows()
+        if self.plus_one_button.check_collision():
+            self.bpm += 1 if self.bpm < 300 else self.bpm
+        if self.plus_ten_button.check_collision():
+            self.bpm += 10 if self.bpm < 290 else self.bpm
+        if self.minus_one_button.check_collision():
+            self.bpm -= 1 if self.bpm > 1 else self.bpm
+        if self.minus_ten_button.check_collision():
+            self.bpm -= 10 if self.bpm > 10 else self.bpm
+        if self.play_button.check_collision():
+            self.play = True
+        if self.stop_button.check_collision():
+            self.play = False
 
     def generate_arrows(self) -> None:
         """ Generates arrows on the screen. """
@@ -80,7 +94,7 @@ class StrummingPatternGenerator:
 
     def update_slot_indicator(self, dt: float) -> None:
         """ Updates the slot indicators. """
-        beat_time: float = self.bpm / 60 / 8
+        beat_time: float = 60 / (self.bpm * 8)
         self.timer += dt
         if self.timer >= beat_time:
             self.timer = 0.0
@@ -95,7 +109,6 @@ class StrummingPatternGenerator:
             for idx, si in enumerate(self.slot_indicators):
                 si.update(activated=self.si_states[idx])
 
-
     def draw(self) -> None:
         """ Draws the background, the arrows and lines between the arrows. """
         self.screen.blit(self.background, (0, 0))
@@ -104,6 +117,10 @@ class StrummingPatternGenerator:
                 self.draw_arrows(i)
             self.slot_indicators[i].render(self.screen)
             pg.draw.line(self.screen, "black", (55 + i * 60, 75), (55 + i * 60, 250), 1)
+        bpm_to_blit: pg.Surface = self.font.render(str(self.bpm), True, "black")
+        bpm_x_pos = 108 - bpm_to_blit.get_width() / 2  # 108 is the middle between the -1 and +1 button
+        bpm_y_pos = 25 - bpm_to_blit.get_height() / 2  # 25 is the middle height of all buttons
+        self.screen.blit(bpm_to_blit, (bpm_x_pos, bpm_y_pos))
         for button in self.buttons: 
             button.render(self.screen)
         pg.display.update()
@@ -115,9 +132,10 @@ class StrummingPatternGenerator:
             self.clock.tick(self.FPS)
             dt = perf_counter() - old_time
             old_time = perf_counter()
-            self.update_slot_indicator(dt)
+            if self.play:
+                self.update_slot_indicator(dt)
             self.draw()
-            self.check_button()
+            self.check_buttons()
             self.event_handler()
             
             
