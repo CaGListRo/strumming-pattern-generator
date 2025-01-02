@@ -1,5 +1,6 @@
 from button import Button
 from slot_indicator import SlotIndicator
+from check_box import CheckBox
 
 import pygame as pg
 
@@ -19,6 +20,7 @@ class StrummingPatternGenerator:
         icon_surf = pg.surface.Surface((32, 32))
         icon_surf.blit(icon, (0, 0))
         pg.display.set_icon(icon)
+        self.font: pg.font.Font = pg.font.SysFont("comicsans", 23)
 
         self.running: bool = True
         self.clock: pg.time.Clock = pg.time.Clock()
@@ -40,8 +42,11 @@ class StrummingPatternGenerator:
         self.arrow_up: pg.Surface = pg.image.load("arrow.png").convert_alpha()
         self.arrow_up = pg.transform.rotate(self.arrow_up, 180)
         self.background: pg.Surface = pg.image.load("background.png")
-        self.screen.blit(self.background, (0, 0))
-        self.arrows: list[bool] = []
+        chkbox_0: pg.Surface = pg.image.load("check_box_0.png").convert_alpha()
+        chkbox_1: pg.Surface = pg.image.load("check_box_1.png").convert_alpha()
+
+        self.check_box: CheckBox = CheckBox(font=self.font, mid_pos=(200, 275), images=[chkbox_1, chkbox_0], active=True)
+        
         # slot indicators
         self.si_states: list[bool] = [True, False, False, False, False, False, False, False]
         self.slot_indicators: list[SlotIndicator] = []
@@ -50,10 +55,16 @@ class StrummingPatternGenerator:
             self.slot_indicators[i].set_state(self.si_states[i])
         self.current_slot: int = 0
 
-        self.bpm: int = 120
-        self.font: pg.font.Font = pg.font.SysFont("comicsans", 23)
+        self.arrows: list[bool] = []
+        self.bpm: int = 120        
         self.timer: float = 0.0
         self.play: bool = False
+
+        # sound
+        pg.mixer.init()
+        self.sound_enabled: bool = True
+        self.sound_1: pg.mixer.Sound = pg.mixer.Sound("metronom click 1.wav")
+        self.sound_2: pg.mixer.Sound = pg.mixer.Sound("metronom click 2.wav")
 
     def event_handler(self) -> None:
         """ Handles events. """
@@ -62,7 +73,7 @@ class StrummingPatternGenerator:
                 self.running = False
                 pg.quit()
 
-    def check_buttons(self) -> None:
+    def check_elements(self) -> None:
         """ Checks if the generate_button is clicked. """
         self.generate = self.generate_button.check_collision()
         if self.generate:
@@ -79,6 +90,8 @@ class StrummingPatternGenerator:
             self.play = True
         if self.stop_button.check_collision():
             self.play = False
+        if self.check_box.check_collision():
+            self.sound_enabled = True if self.check_box.get_state() else False
 
     def generate_arrows(self) -> None:
         """ Generates arrows on the screen. """
@@ -92,22 +105,38 @@ class StrummingPatternGenerator:
             else:
                 self.screen.blit(self.arrow_up, (idx * 60, 70))
 
+    def play_sound(self, slot: int) -> None:
+        """
+        Plays a sound based on the slot.
+        Args:
+        slot (int): The slot to play the sound for.
+        """
+        if self.sound_enabled:
+            if slot == 0:
+                self.sound_2.play()
+            elif slot % 2 == 0:
+                self.sound_1.play()
+
     def update_slot_indicator(self, dt: float) -> None:
         """ Updates the slot indicators. """
-        beat_time: float = 60 / (self.bpm * 8)
+        beat_time: float = 60 / (self.bpm * 4)
         self.timer += dt
         if self.timer >= beat_time:
             self.timer = 0.0
             self.current_slot += 1
             if self.current_slot >= 8:
                 self.current_slot = 0
+            # change the states in the slot indicator states list (si_states)
             self.si_states[self.current_slot] = not self.si_states[self.current_slot]
             if self.current_slot != 0:
                 self.si_states[self.current_slot - 1] = not self.si_states[self.current_slot - 1]
             else:
                 self.si_states[7] = not self.si_states[7]
+            # setting the states of the slot indicators
             for idx, si in enumerate(self.slot_indicators):
-                si.update(activated=self.si_states[idx])
+                si.set_state(state=self.si_states[idx])
+            # play sound
+            self.play_sound(self.current_slot)
 
     def draw(self) -> None:
         """ Draws the background, the arrows and lines between the arrows. """
@@ -123,6 +152,7 @@ class StrummingPatternGenerator:
         self.screen.blit(bpm_to_blit, (bpm_x_pos, bpm_y_pos))
         for button in self.buttons: 
             button.render(self.screen)
+        self.check_box.render(self.screen)
         pg.display.update()
 
     def run(self) -> None:
@@ -135,7 +165,7 @@ class StrummingPatternGenerator:
             if self.play:
                 self.update_slot_indicator(dt)
             self.draw()
-            self.check_buttons()
+            self.check_elements()
             self.event_handler()
             
             
