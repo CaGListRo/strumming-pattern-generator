@@ -4,7 +4,7 @@ from typing import TypeVar
 
 
 class CheckBox:
-    def __init__(self, font: pg.font.Font, mid_pos:tuple[int, int], images: list[pg.Surface, pg.Surface], active: bool = True) -> None:
+    def __init__(self, font: pg.font.Font, text: str, mid_pos:tuple[int, int], images: list[pg.Surface, pg.Surface], active: bool = True) -> None:
         """
         Initialize a checkbox object.
         Args:
@@ -14,6 +14,7 @@ class CheckBox:
         active (bool): Whether the checkbox is active or not. Defaults to True.
         """
         self.font: pg.font.Font = font
+        self.text: str = text
         self.render_text()
         self.images: list[pg.Surface] = images
         self.half_image_width: int = self.images[0].get_width() //2
@@ -26,7 +27,7 @@ class CheckBox:
 
     def render_text(self) -> None:
         """ Renders the text for the checkbox. """
-        text_to_render: str = "Play Sound"
+        text_to_render: str = self.text
         self.text: pg.Surface = self.font.render(text_to_render, True, "black")
 
     def get_state(self) -> bool:
@@ -66,4 +67,4 @@ class CheckBox:
         """
         image_number: int = 0 if self.active else 1
         surf.blit(self.images[image_number], self.rect)
-        surf.blit(self.text, (self.mid_pos[0] + self.half_image_width + 23, self.mid_pos[1] - self.half_text_height))
+        surf.blit(self.text, (self.mid_pos[0] + self.half_image_width + 5, self.mid_pos[1] - self.half_text_height))

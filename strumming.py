@@ -45,7 +45,9 @@ class StrummingPatternGenerator:
         chkbox_0: pg.Surface = pg.image.load("check_box_0.png").convert_alpha()
         chkbox_1: pg.Surface = pg.image.load("check_box_1.png").convert_alpha()
 
-        self.check_box: CheckBox = CheckBox(font=self.font, mid_pos=(200, 275), images=[chkbox_1, chkbox_0], active=True)
+        self.sound_check_box: CheckBox = CheckBox(font=self.font, text="Sound", mid_pos=(25, 275), images=[chkbox_1, chkbox_0], active=True)
+        self.strum_check_box: CheckBox = CheckBox(font=self.font, text="Strum", mid_pos=(150, 275), images=[chkbox_1, chkbox_0], active=False)
+        self.forth_check_box: CheckBox = CheckBox(font=self.font, text="4/4", mid_pos=(275, 275), images=[chkbox_1, chkbox_0], active=True)
         
         # slot indicators
         self.si_states: list[bool] = [True, False, False, False, False, False, False, False]
@@ -59,9 +61,12 @@ class StrummingPatternGenerator:
         self.bpm: int = 120        
         self.timer: float = 0.0
         self.play: bool = False
+        self.play_forth: bool = True
+        self.play_strum: bool = False
 
         # sound
         pg.mixer.init()
+        pg.mixer.set_num_channels(20)
         self.sound_enabled: bool = True
         self.sound_1: pg.mixer.Sound = pg.mixer.Sound("metronom click 1.wav")
         self.sound_2: pg.mixer.Sound = pg.mixer.Sound("metronom click 2.wav")
@@ -90,8 +95,17 @@ class StrummingPatternGenerator:
             self.play = True
         if self.stop_button.check_collision():
             self.play = False
-        if self.check_box.check_collision():
-            self.sound_enabled = True if self.check_box.get_state() else False
+
+        if self.sound_check_box.check_collision():
+            self.sound_enabled = True if self.sound_check_box.get_state() else False
+        if self.forth_check_box.check_collision():
+            self.play_forth = True if self.forth_check_box.get_state() else False
+            self.strum_check_box.set_state(False if self.play_forth else True)
+            self.play_strum = False
+        if self.strum_check_box.check_collision():
+            self.play_strum = True if self.strum_check_box.get_state() else False
+            self.forth_check_box.set_state(False if self.play_strum else True)
+            self.play_forth = False
 
     def generate_arrows(self) -> None:
         """ Generates arrows on the screen. """
@@ -111,11 +125,17 @@ class StrummingPatternGenerator:
         Args:
         slot (int): The slot to play the sound for.
         """
-        if self.sound_enabled:
+        if self.play_forth:
             if slot == 0:
                 self.sound_2.play()
             elif slot % 2 == 0:
                 self.sound_1.play()
+        elif self.play_strum and len(self.arrows) > 0:
+            if self.arrows[slot]:
+                if slot % 2 == 0:
+                    self.sound_2.play()
+                else:
+                    self.sound_1.play()
 
     def update_slot_indicator(self, dt: float) -> None:
         """ Updates the slot indicators. """
@@ -136,7 +156,8 @@ class StrummingPatternGenerator:
             for idx, si in enumerate(self.slot_indicators):
                 si.set_state(state=self.si_states[idx])
             # play sound
-            self.play_sound(self.current_slot)
+            if self.sound_enabled:
+                self.play_sound(self.current_slot)
 
     def draw(self) -> None:
         """ Draws the background, the arrows and lines between the arrows. """
@@ -152,7 +173,9 @@ class StrummingPatternGenerator:
         self.screen.blit(bpm_to_blit, (bpm_x_pos, bpm_y_pos))
         for button in self.buttons: 
             button.render(self.screen)
-        self.check_box.render(self.screen)
+        self.sound_check_box.render(self.screen)
+        self.strum_check_box.render(self.screen)
+        self.forth_check_box.render(self.screen)
         pg.display.update()
 
     def run(self) -> None:
