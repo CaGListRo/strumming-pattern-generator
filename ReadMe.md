@@ -1,13 +1,28 @@
-# Strumming Pattern Generator
+# Strumming Pattern Generator with Metronome
 
-This project is a simple Python application that generates random strumming patterns using the `pygame` library. The application displays arrows (up and down) to represent the strumming directions, with customizable visual elements like a background image and arrow graphics.
+This project is an enhanced Python application that combines a **strumming pattern generator** with a **metronome**. It provides options for generating visual and audio representations of musical patterns, including adjustable metronome sounds for beats and strumming.
 
 ## Features
 
-- **Random Strumming Patterns**: Randomly generates upward and downward strumming arrows.
-- **Interactive GUI**: Displays the strumming pattern on a graphical interface with lines separating each arrow.
-- **Customizable Assets**: Allows loading custom background and arrow images.
-- **Frame Control**: Runs at a fixed frame rate of 30 FPS for smooth visuals.
+### 1. Metronome Mode
+
+- Plays a metronome sound for 4/4 time signatures.
+- The first beat has a distinct tone compared to other beats.
+
+### 2. Strumming Pattern Mode
+
+- Generates random strumming patterns.
+- Plays different sounds for downstrokes and upstrokes.
+
+### 3. Interactive GUI
+
+- Adjustable BPM (Beats Per Minute) through buttons.
+- Checkboxes to toggle features like sound, metronome mode, or strumming mode.
+- Visual indicators for beats and strumming slots.
+
+### 4. Customizable Assets
+
+- Includes options to replace images (background, arrows, checkboxes) and sounds.
 
 ## Requirements
 
@@ -22,58 +37,77 @@ pip install pygame
 
 ## How to Run
 
-1. Clone the repository or copy the script.
-2. Ensure the required image assets are in the same directory as the script:
-   - `arrow.png`: Arrow image used for both upward and downward arrows.
-   - `background.png`: Background image for the application.
-3. Run the script:
+1. Clone the repository or copy the scripts.
+2. Ensure the required assets are in the same directory as the scripts:
+   - **Images**: `icon.png`, `arrow.png`, `background.png`, `check_box_0.png`, `check_box_1.png`
+   - **Sounds**: `metronom click 1.wav`, `metronom click 2.wav`
+3. Run the script `strumming.py`:
 
 ```bash
-python script_name.py
+python strumming.py
 ```
 
-## Files
+## Files Overview
 
-- **`arrow.png`**: A PNG image representing an arrow pointing downwards. The script rotates it 180° to create upward arrows.
-- **`background.png`**: A PNG image used as the background for the application.
+### Scripts
+
+- **`button.py`**: Defines a `Button` class for GUI buttons.
+- **`check_box.py`**: Defines a `CheckBox` class for toggling settings.
+- **`strumming.py`**: Main application script that integrates the metronome and strumming pattern generator.
+
+### Assets
+
+- **Images**:
+  - `icon.png`: Application icon.
+  - `arrow.png`: Arrow images for up and down strumming patterns.
+  - `background.png`: Background image for the GUI.
+  - `check_box_0.png` & `check_box_1.png`: Checkbox states.
+- **Sounds**:
+  - `metronom click 1.wav`: Sound for the first beat or downstroke.
+  - `metronom click 2.wav`: Sound for other beats or upstrokes.
 
 ## How It Works
 
-1. **Initialization**:
+### Initialization
 
-   - Initializes the `pygame` library.
-   - Sets up the display window with a resolution of `480x223`.
+- Sets up the `pygame` environment, window, and assets.
+- Configures buttons, checkboxes, and slot indicators.
 
-2. **Event Handling**:
+### Metronome Mode
 
-   - Handles user input and events (e.g., closing the application).
+- Plays distinct sounds for the first beat and the remaining beats in a 4/4 measure.
+- Visual slot indicators highlight the current beat.
 
-3. **Arrow Generation**:
+### Strumming Pattern Mode
 
-   - Randomly decides whether to draw upward or downward arrows in predefined positions.
+- Randomly generates up and down arrows for strumming.
+- Plays different sounds for upstrokes and downstrokes.
 
-4. **Drawing**:
+### Controls
 
-   - Displays the background, arrows, and lines dividing each section.
-
-5. **Main Loop**:
-   - Continuously updates the screen at 30 FPS until the application is closed.
+- **Buttons**:
+  - Adjust BPM with `+1`, `+10`, `-1`, and `-10` buttons.
+  - Start/Stop playback with `|>` and `[]` buttons.
+  - Regenerate strumming patterns with the `(Re)Generate` button.
+- **Checkboxes**:
+  - Toggle sound with the `Sound` checkbox.
+  - Switch between `4/4` metronome and `Strum` mode using respective checkboxes.
 
 ## Customization
 
-- **Arrow and Background Images**: Replace `arrow.png` and `background.png` with your own images to customize the visuals.
-- **Frame Rate**: Modify the `FPS` constant to adjust the frame rate.
-- **Display Resolution**: Change the dimensions in `pg.display.set_mode()` for a different screen size.
+- **Images**: Replace the provided image files with your own for a personalized appearance.
+- **Sounds**: Substitute the `.wav` files to customize the metronome and strumming sounds.
+- **BPM Limits**: Adjust the maximum and minimum BPM in the `check_elements` method in `strumming.py`.
 
 ## License
 
-This project is open-source and can be used or modified as needed.
+This project is open-source and can be freely used or modified.
 
 ## Acknowledgments
 
-- Built with the `pygame` library.
-- Inspired by guitar strumming patterns.
+- Built using the `pygame` library.
+- Inspired by guitar strumming patterns and rhythmic practice tools.
 
 ---
 
-Enjoy creating and exploring random strumming patterns!
+Enjoy experimenting with custom strumming patterns and metronome settings!
