@@ -3,7 +3,7 @@ import pygame as pg
 from typing import TypeVar
 
 
-class CheckBox:
+class Checkbox:
     def __init__(self, font: pg.font.Font, text: str, mid_pos:tuple[int, int], images: list[pg.Surface, pg.Surface], active: bool = True) -> None:
         """
         Initialize a checkbox object.
